@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+  <meta name="description" content="Impostor – slovní party hra Pass & Play pro mobil. Jeden telefon, společná zábava.">
+  <meta name="theme-color" content="#0f0f1a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Impostor">
+
+  <title>Impostor – Party hra</title>
+
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/svg+xml" href="assets/icon.svg">
+  <link rel="apple-touch-icon" href="assets/icon.svg">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            void: '#0f0f1a',
+            surface: '#1a1a2e',
+            card: '#16213e',
+            neon: {
+              pink: '#ff2d95',
+              cyan: '#00f5ff',
+              purple: '#b026ff',
+              green: '#39ff14',
+            },
+          },
+          fontFamily: {
+            display: ['Segoe UI', 'system-ui', 'sans-serif'],
+          },
+          animation: {
+            pulseGlow: 'pulseGlow 2s ease-in-out infinite',
+            fadeIn: 'fadeIn 0.35s ease-out',
+          },
+          keyframes: {
+            pulseGlow: {
+              '0%, 100%': { boxShadow: '0 0 20px rgba(255, 45, 149, 0.3)' },
+              '50%': { boxShadow: '0 0 40px rgba(255, 45, 149, 0.6)' },
+            },
+            fadeIn: {
+              from: { opacity: '0', transform: 'translateY(8px)' },
+              to: { opacity: '1', transform: 'translateY(0)' },
+            },
+          },
+        },
+      },
+    };
+  </script>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="bg-void text-white font-display min-h-dvh antialiased selection:bg-neon-pink/30">
+
+  <!-- Resume banner -->
+  <div id="resume-banner" class="hidden fixed top-0 inset-x-0 z-50 bg-neon-purple/90 backdrop-blur px-4 py-3 flex items-center justify-between gap-3 safe-top">
+    <p class="text-sm">Máte rozdělanou hru.</p>
+    <div class="flex gap-2 shrink-0">
+      <button id="btn-resume" class="btn-sm bg-white/20 hover:bg-white/30">Pokračovat</button>
+      <button id="btn-discard" class="btn-sm bg-black/30 hover:bg-black/50">Nová hra</button>
+    </div>
+  </div>
+
+  <main id="app" class="max-w-lg mx-auto px-4 py-6 pb-safe min-h-dvh flex flex-col">
+
+    <!-- SETUP -->
+    <section id="screen-setup" class="screen flex-1 flex flex-col animate-fadeIn">
+      <header class="text-center mb-8">
+        <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-neon-pink to-neon-purple mb-4 shadow-lg shadow-neon-pink/20">
+          <span class="text-3xl" aria-hidden="true">🎭</span>
+        </div>
+        <h1 class="text-3xl font-bold tracking-tight bg-gradient-to-r from-neon-pink via-neon-cyan to-neon-purple bg-clip-text text-transparent">
+          Impostor
+        </h1>
+        <p class="text-gray-400 mt-2 text-sm">Pass &amp; Play party hra</p>
+      </header>
+
+      <div class="space-y-6 flex-1">
+        <fieldset class="card">
+          <legend class="label">Počet hráčů</legend>
+          <div class="flex items-center justify-between gap-4">
+            <button type="button" id="players-minus" class="stepper-btn" aria-label="Méně hráčů">−</button>
+            <output id="players-value" class="text-4xl font-bold text-neon-cyan tabular-nums" for="players-range">4</output>
+            <button type="button" id="players-plus" class="stepper-btn" aria-label="Více hráčů">+</button>
+          </div>
+          <input type="range" id="players-range" min="3" max="10" value="4" class="w-full mt-4 accent-neon-cyan">
+          <p class="hint">Min. 3, max. 10 hráčů</p>
+        </fieldset>
+
+        <fieldset class="card">
+          <legend class="label">Počet impostorů</legend>
+          <div class="flex gap-3" role="radiogroup" aria-label="Počet impostorů">
+            <button type="button" id="impostors-1" class="toggle-btn flex-1 active" data-value="1">1</button>
+            <button type="button" id="impostors-2" class="toggle-btn flex-1" data-value="2">2</button>
+          </div>
+          <p id="impostors-hint" class="hint">Doporučeno pro 5+ hráčů</p>
+        </fieldset>
+
+        <fieldset class="card">
+          <legend class="label">Délka diskuse</legend>
+          <div class="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Délka diskuse">
+            <button type="button" class="timer-btn toggle-btn" data-minutes="3">3 min</button>
+            <button type="button" class="timer-btn toggle-btn active" data-minutes="5">5 min</button>
+            <button type="button" class="timer-btn toggle-btn" data-minutes="7">7 min</button>
+          </div>
+        </fieldset>
+
+        <fieldset class="card">
+          <legend class="label">Volitelné</legend>
+          <label class="flex items-center gap-3 cursor-pointer">
+            <input type="checkbox" id="opt-vibrate" class="w-5 h-5 accent-neon-pink rounded" checked>
+            <span class="text-sm text-gray-300">Vibrace při konci času</span>
+          </label>
+          <label class="flex items-center gap-3 cursor-pointer mt-3">
+            <input type="checkbox" id="opt-show-category-impostor" class="w-5 h-5 accent-neon-pink rounded">
+            <span class="text-sm text-gray-300">Impostor vidí i kategorii (lehčí)</span>
+          </label>
+        </fieldset>
+      </div>
+
+      <button type="button" id="btn-start" class="btn-primary mt-8 w-full">
+        Start hry
+      </button>
+
+      <footer class="text-center mt-6 text-xs text-gray-500">
+        <button type="button" id="btn-rules" class="underline hover:text-gray-300">Pravidla hry</button>
+      </footer>
+    </section>
+
+    <!-- PASS -->
+    <section id="screen-pass" class="screen hidden flex-1 flex flex-col items-center justify-center text-center animate-fadeIn">
+      <p class="text-gray-400 text-sm uppercase tracking-widest mb-2">Předej zařízení</p>
+      <h2 id="pass-player-label" class="text-5xl font-bold text-neon-cyan mb-2">Hráči 1</h2>
+      <p class="text-gray-400 mb-10 max-w-xs">Ujisti se, že nikdo jiný nevidí na obrazovku.</p>
+
+      <button type="button" id="btn-reveal" class="btn-primary w-full max-w-xs">
+        Jsem připraven – ukázat roli
+      </button>
+
+      <p class="text-xs text-gray-600 mt-8">
+        <span id="pass-progress">1 / 4</span> hráčů
+      </p>
+    </section>
+
+    <!-- ROLE REVEAL -->
+    <section id="screen-role" class="screen hidden flex-1 flex flex-col animate-fadeIn">
+      <div id="role-innocent" class="hidden flex-1 flex flex-col">
+        <p class="text-gray-400 text-sm uppercase tracking-widest text-center mb-4">Tvoje role</p>
+        <div class="card flex-1 flex flex-col justify-center items-center text-center border-neon-cyan/30">
+          <p class="text-sm text-neon-cyan mb-2">Kategorie</p>
+          <p id="role-category" class="text-2xl font-semibold mb-8">—</p>
+          <p class="text-sm text-gray-400 mb-2">Tajné slovo</p>
+          <p id="role-word" class="text-5xl font-bold text-neon-green break-words max-w-full leading-tight">—</p>
+        </div>
+        <p class="text-center text-gray-500 text-sm mt-4">Řekni nápovědu – nesmíš slovo přímo prozradit!</p>
+      </div>
+
+      <div id="role-impostor" class="hidden flex-1 flex flex-col">
+        <p class="text-gray-400 text-sm uppercase tracking-widest text-center mb-4">Tvoje role</p>
+        <div class="card flex-1 flex flex-col justify-center items-center text-center border-neon-pink/50 animate-pulseGlow">
+          <p class="text-6xl mb-4" aria-hidden="true">🕵️</p>
+          <h2 class="text-4xl font-bold text-neon-pink mb-4">JSI IMPOSTOR!</h2>
+          <p class="text-gray-300 max-w-xs">Tváří se nenápadně. Poslouchej nápovědy ostatních a uhodni tajné slovo.</p>
+          <p id="role-impostor-category" class="hidden mt-6 text-neon-cyan text-lg"></p>
+        </div>
+        <details class="mt-4 card text-left">
+          <summary class="cursor-pointer text-sm text-gray-400 hover:text-gray-200">Seznam kategorií (nápověda)</summary>
+          <ul id="role-categories-list" class="mt-3 space-y-1 text-sm text-gray-300 max-h-40 overflow-y-auto"></ul>
+        </details>
+      </div>
+
+      <button type="button" id="btn-hide-role" class="btn-secondary mt-6 w-full" disabled>
+        Skrýt roli a předat dál
+        <span id="hide-countdown" class="text-xs opacity-70"> (1s)</span>
+      </button>
+    </section>
+
+    <!-- GAMEPLAY -->
+    <section id="screen-gameplay" class="screen hidden flex-1 flex flex-col animate-fadeIn">
+      <header class="text-center mb-6">
+        <p class="text-gray-400 text-sm uppercase tracking-widest">Diskuse</p>
+        <p id="timer-display" class="text-6xl font-bold tabular-nums text-neon-cyan mt-2">5:00</p>
+        <div id="timer-bar" class="h-1.5 bg-surface rounded-full mt-4 overflow-hidden">
+          <div id="timer-progress" class="h-full bg-gradient-to-r from-neon-cyan to-neon-purple transition-all duration-1000 ease-linear w-full"></div>
+        </div>
+      </header>
+
+      <div class="card flex-1 overflow-hidden flex flex-col min-h-0">
+        <h3 class="text-sm text-gray-400 uppercase tracking-widest mb-3 shrink-0">Kategorie &amp; slova</h3>
+        <p class="text-xs text-gray-500 mb-3 shrink-0">Pro impostora – inspirace z jiných kol</p>
+        <div id="categories-reference" class="overflow-y-auto flex-1 space-y-4 text-sm pr-1"></div>
+      </div>
+
+      <div class="mt-4 space-y-3">
+        <button type="button" id="btn-pause" class="btn-secondary w-full">Pozastavit čas</button>
+        <button type="button" id="btn-end-discussion" class="btn-primary w-full">Ukončit diskusi → Hlasování</button>
+      </div>
+    </section>
+
+    <!-- RESOLUTION -->
+    <section id="screen-resolution" class="screen hidden flex-1 flex flex-col items-center justify-center text-center animate-fadeIn">
+      <p class="text-gray-400 text-sm uppercase tracking-widest mb-4">Čas vypršel</p>
+      <h2 class="text-2xl font-bold mb-2">Hlasujte!</h2>
+      <p class="text-gray-400 mb-10 max-w-xs">Domluvte se, kdo je impostor. Pak odhalte výsledek.</p>
+
+      <button type="button" id="btn-reveal-result" class="btn-primary w-full max-w-xs mb-4">
+        Odhalit impostora
+      </button>
+    </section>
+
+    <!-- RESULT -->
+    <section id="screen-result" class="screen hidden flex-1 flex flex-col animate-fadeIn">
+      <header class="text-center mb-6">
+        <h2 class="text-2xl font-bold">Výsledek</h2>
+      </header>
+
+      <div class="card border-neon-pink/40 mb-4">
+        <p class="text-sm text-gray-400 mb-2">Impostor byl</p>
+        <p id="result-impostors" class="text-3xl font-bold text-neon-pink">—</p>
+      </div>
+
+      <div class="card border-neon-green/40 mb-6">
+        <p class="text-sm text-gray-400 mb-2">Tajné slovo</p>
+        <p id="result-word" class="text-4xl font-bold text-neon-green">—</p>
+        <p id="result-category" class="text-neon-cyan mt-2">—</p>
+      </div>
+
+      <div class="card text-left mb-6">
+        <p class="text-sm text-gray-400 mb-3">Přehled hráčů</p>
+        <ul id="result-players" class="space-y-2 text-sm"></ul>
+      </div>
+
+      <button type="button" id="btn-play-again" class="btn-primary w-full">Hrát znovu</button>
+      <button type="button" id="btn-same-settings" class="btn-secondary w-full mt-3">Stejné nastavení, nové slovo</button>
+    </section>
+
+    <!-- RULES MODAL -->
+    <dialog id="rules-modal" class="rules-dialog">
+      <div class="rules-dialog-inner">
+        <button type="button" id="btn-close-rules" class="absolute top-4 right-4 text-gray-400 hover:text-white text-2xl leading-none" aria-label="Zavřít">&times;</button>
+        <h2 class="text-xl font-bold mb-4 text-neon-cyan">Pravidla hry</h2>
+        <ol class="space-y-3 text-sm text-gray-300 list-decimal list-inside">
+          <li>Všichni kromě impostora znají tajné slovo z náhodné kategorie.</li>
+          <li>Impostor zná jen to, že je impostor (+ seznam kategorií).</li>
+          <li>Střídáte se – každý řekne jednu nápovědu (slovo nebo krátkou větu).</li>
+          <li>Nesmíte přímo říct tajné slovo ani příliš obvious nápovědu.</li>
+          <li>Impostor se snaží splynout a uhodnout slovo z nápověd.</li>
+          <li>Po vypršení času hlasujete, kdo je impostor.</li>
+          <li>Impostor vyhrává, pokud nebyl odhalen. Ostatní vyhrávají, pokud ho chytí.</li>
+        </ol>
+      </div>
+    </dialog>
+
+  </main>
+
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    }
+  </script>
+</body>
+</html>
