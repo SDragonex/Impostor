@@ -1,0 +1,20 @@
+{
+  "name": "Impostor – Party hra",
+  "short_name": "Impostor",
+  "description": "Pass & Play slovní party hra pro přátele. Jeden telefon, společná zábava.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0f0f1a",
+  "theme_color": "#0f0f1a",
+  "orientation": "portrait-primary",
+  "lang": "cs",
+  "icons": [
+    {
+      "src": "assets/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["games", "entertainment"]
+}
