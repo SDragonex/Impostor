@@ -15,6 +15,9 @@ let setupConfig = {
   timerMinutes: 5,
   vibrateOnEnd: true,
   showCategoryToImpostor: false,
+  hardcoreMode: false,
+  theme: 'dark',
+  selectedCategories: [],
 };
 
 /** @type {object|null} */
@@ -139,6 +142,79 @@ function clearState() {
   els.resumeBanner.classList.add('hidden');
 }
 
+// --- Theme ---
+
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  setupConfig.theme = theme;
+  // Sync radio buttons
+  const radio = document.querySelector(`input[name="theme"][value="${theme}"]`);
+  if (radio) radio.checked = true;
+}
+
+// --- Category Modal ---
+
+let _pendingCategories = [];
+
+function buildCategoryModal() {
+  const list = document.getElementById('category-list');
+  list.innerHTML = '';
+  Object.entries(WORD_DICTIONARY).forEach(([key, cat]) => {
+    const label = document.createElement('label');
+    label.className = 'category-modal-item';
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.value = key;
+    cb.id = `cat-${key}`;
+    cb.checked = setupConfig.selectedCategories.includes(key);
+    const span = document.createElement('span');
+    span.textContent = cat.name;
+    label.append(cb, span);
+    list.appendChild(label);
+  });
+  // Sync "Všechny" checkbox
+  syncAllCategoriesCheckbox();
+}
+
+function syncAllCategoriesCheckbox() {
+  const allCb = document.getElementById('cat-all');
+  const allKeys = Object.keys(WORD_DICTIONARY);
+  const checked = document.querySelectorAll('#category-list input[type="checkbox"]:checked');
+  allCb.checked = checked.length === allKeys.length || checked.length === 0;
+  allCb.indeterminate = checked.length > 0 && checked.length < allKeys.length;
+}
+
+function openCategoryModal() {
+  buildCategoryModal();
+  document.getElementById('category-modal').showModal();
+}
+
+function closeCategoryModal() {
+  document.getElementById('category-modal').close();
+}
+
+function confirmCategorySelection() {
+  const checked = document.querySelectorAll('#category-list input[type="checkbox"]:checked');
+  const allKeys = Object.keys(WORD_DICTIONARY);
+  const selected = Array.from(checked).map(cb => cb.value);
+  // If all selected or none, treat as "all" (empty = all)
+  setupConfig.selectedCategories = (selected.length === allKeys.length) ? [] : selected;
+  updateCategoriesBadge();
+  closeCategoryModal();
+}
+
+function updateCategoriesBadge() {
+  const badge = document.getElementById('categories-badge');
+  const n = setupConfig.selectedCategories.length;
+  if (n === 0) {
+    badge.classList.add('hidden');
+  } else {
+    badge.textContent = n;
+    badge.classList.remove('hidden');
+  }
+}
+
+
 // --- Setup ---
 
 function getMaxImpostors(playerCount) {
@@ -166,12 +242,20 @@ function updateSetupUI() {
       : 'Doporučeno pro větší skupiny';
 
   document.querySelectorAll('.timer-btn').forEach((btn) => {
-    btn.classList.toggle('active', Number(btn.dataset.minutes) === setupConfig.timerMinutes);
+    const mins = Number(btn.dataset.minutes);
+    btn.classList.toggle('active', mins === setupConfig.timerMinutes);
+    btn.disabled = setupConfig.hardcoreMode && mins !== 3;
   });
+  // Sync hardcore side-effects
+  const showCatLabel = document.getElementById('opt-show-category-label');
+  if (showCatLabel) {
+    showCatLabel.style.opacity = setupConfig.hardcoreMode ? '0.4' : '1';
+    showCatLabel.style.pointerEvents = setupConfig.hardcoreMode ? 'none' : '';
+  }
 }
 
 function startGame() {
-  const { categoryKey, categoryName, word } = pickRandomWord();
+  const { categoryKey, categoryName, word } = pickRandomWord(setupConfig.selectedCategories);
   const playerIndices = shuffle(Array.from({ length: setupConfig.playerCount }, (_, i) => i));
   const impostorIndices = playerIndices.slice(0, setupConfig.impostorCount).sort((a, b) => a - b);
 
@@ -443,6 +527,9 @@ function resumeGame() {
 
   document.getElementById('opt-vibrate').checked = setupConfig.vibrateOnEnd;
   document.getElementById('opt-show-category-impostor').checked = setupConfig.showCategoryToImpostor;
+  document.getElementById('opt-hardcore').checked = setupConfig.hardcoreMode ?? false;
+  applyTheme(setupConfig.theme ?? 'dark');
+  updateCategoriesBadge();
 
   const screen = gameState.screen;
 
@@ -508,6 +595,38 @@ function bindEvents() {
     setupConfig.showCategoryToImpostor = e.target.checked;
   });
 
+  document.getElementById('opt-hardcore').addEventListener('change', (e) => {
+    setupConfig.hardcoreMode = e.target.checked;
+    if (setupConfig.hardcoreMode) {
+      setupConfig.timerMinutes = 3;
+      setupConfig.showCategoryToImpostor = false;
+      document.getElementById('opt-show-category-impostor').checked = false;
+    }
+    updateSetupUI();
+  });
+
+  document.querySelectorAll('input[name="theme"]').forEach((radio) => {
+    radio.addEventListener('change', (e) => {
+      applyTheme(e.target.value);
+    });
+  });
+
+  // Category modal
+  document.getElementById('btn-open-categories').addEventListener('click', openCategoryModal);
+  document.getElementById('btn-close-categories').addEventListener('click', closeCategoryModal);
+  document.getElementById('btn-cancel-categories').addEventListener('click', closeCategoryModal);
+  document.getElementById('btn-confirm-categories').addEventListener('click', confirmCategorySelection);
+
+  document.getElementById('cat-all').addEventListener('change', (e) => {
+    const cbs = document.querySelectorAll('#category-list input[type="checkbox"]');
+    cbs.forEach(cb => { cb.checked = e.target.checked; });
+    syncAllCategoriesCheckbox();
+  });
+
+  document.getElementById('category-list').addEventListener('change', () => {
+    syncAllCategoriesCheckbox();
+  });
+
   document.getElementById('btn-start').addEventListener('click', () => {
     clearState();
     startGame();
@@ -555,7 +674,16 @@ function init() {
 
   const saved = loadPersistedState();
   if (saved?.gameState && saved.gameState.screen !== 'setup') {
+    // Restore saved theme
+    if (saved.setupConfig?.theme) {
+      applyTheme(saved.setupConfig.theme);
+    } else {
+      applyTheme('dark');
+    }
     els.resumeBanner.classList.remove('hidden');
+  } else {
+    // Apply default dark theme
+    applyTheme(setupConfig.theme);
   }
 }
 
