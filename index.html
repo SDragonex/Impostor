@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="cs">
+<html lang="cs" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
@@ -126,7 +126,6 @@
           </div>
           <p id="impostors-hint" class="hint"><i class="ph-bold ph-lightbulb"></i> Doporučeno pro 5+ hráčů</p>
         </fieldset>
-
         <fieldset class="card">
           <legend class="label"><i class="ph-bold ph-timer text-neon-purple"></i> Délka diskuse</legend>
           <div class="grid grid-cols-3 gap-3" role="radiogroup" aria-label="Délka diskuse">
@@ -136,16 +135,43 @@
           </div>
         </fieldset>
 
+
+        <fieldset class="card">
+          <legend class="label"><i class="ph-bold ph-sun text-neon-yellow"></i> Téma</legend>
+          <div class="theme-toggle-group">
+            <label class="theme-toggle-option">
+              <input type="radio" name="theme" value="light" id="theme-light">
+              <span class="theme-toggle-label">
+                <i class="ph-bold ph-sun"></i> Light
+              </span>
+            </label>
+            <label class="theme-toggle-option">
+              <input type="radio" name="theme" value="dark" id="theme-dark" checked>
+              <span class="theme-toggle-label">
+                <i class="ph-bold ph-moon-stars"></i> Dark
+              </span>
+            </label>
+          </div>
+        </fieldset>
+
         <fieldset class="card">
           <legend class="label"><i class="ph-bold ph-sliders-horizontal text-neon-green"></i> Volitelné</legend>
           <label class="flex items-center gap-3 cursor-pointer group">
             <input type="checkbox" id="opt-vibrate" class="w-5 h-5 accent-neon-pink rounded bg-white/10 border-white/20" checked>
             <span class="text-sm text-gray-300 group-hover:text-white transition-colors">Vibrace při konci času</span>
           </label>
-          <label class="flex items-center gap-3 cursor-pointer mt-4 group">
+          <label class="flex items-center gap-3 cursor-pointer mt-4 group" id="opt-show-category-label">
             <input type="checkbox" id="opt-show-category-impostor" class="w-5 h-5 accent-neon-pink rounded bg-white/10 border-white/20">
             <span class="text-sm text-gray-300 group-hover:text-white transition-colors">Impostor vidí i kategorii (lehčí)</span>
           </label>
+          <label class="flex items-center gap-3 cursor-pointer mt-4 group">
+            <input type="checkbox" id="opt-hardcore" class="w-5 h-5 accent-neon-pink rounded bg-white/10 border-white/20">
+            <span class="text-sm text-gray-300 group-hover:text-white transition-colors">Hardcore mód (pevný čas 3 min, skryje kategorii impostorovi)</span>
+          </label>
+          <button type="button" id="btn-open-categories" class="btn-secondary w-full mt-5 text-sm">
+            <i class="ph-bold ph-funnel"></i> Vybrat kategorie
+            <span id="categories-badge" class="ml-auto text-xs bg-neon-purple/30 text-neon-purple px-2 py-0.5 rounded-full hidden">0</span>
+          </button>
         </fieldset>
       </div>
 
@@ -367,6 +393,34 @@
             <li><strong>Impostor vyhrává</strong>, pokud nebyl většinou odhalen, NEBO pokud ho odhalili, ale on dokáže přesně uhodnout tajné slovo.</li>
             <li><strong>Ostatní vyhrávají</strong>, pokud impostora odhalí a on neuhodne slovo.</li>
           </ul>
+        </div>
+      </div>
+    </dialog>
+
+    <!-- CATEGORY MODAL -->
+    <dialog id="category-modal" class="rules-dialog">
+      <div class="rules-dialog-inner">
+        <button type="button" id="btn-close-categories" class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-white/5 text-gray-400 hover:text-white hover:bg-white/20 transition-colors" aria-label="Zavřít">
+          <i class="ph-bold ph-x text-lg"></i>
+        </button>
+        <h2 class="text-2xl font-extrabold mb-2 flex items-center gap-3 text-white">
+          <i class="ph-fill ph-funnel text-neon-purple"></i> Kategorie
+        </h2>
+        <p class="text-xs text-gray-400 mb-5">Vyber kategorie, ze kterých se bude losovat slovo. Pokud nevybereš nic, použijí se všechny.</p>
+
+        <!-- Select all -->
+        <label class="flex items-center gap-3 cursor-pointer mb-4 p-3 rounded-xl border border-white/10 bg-white/5 group">
+          <input type="checkbox" id="cat-all" class="w-5 h-5 accent-neon-cyan">
+          <span class="font-semibold text-white group-hover:text-neon-cyan transition-colors">Všechny kategorie</span>
+        </label>
+
+        <div id="category-list" class="space-y-2 max-h-[45dvh] overflow-y-auto pr-1 custom-scrollbar">
+          <!-- Populated by JS -->
+        </div>
+
+        <div class="flex gap-3 mt-6">
+          <button type="button" id="btn-cancel-categories" class="btn-secondary flex-1">Zrušit</button>
+          <button type="button" id="btn-confirm-categories" class="btn-primary flex-1 !py-3 !text-base">Potvrdit</button>
         </div>
       </div>
     </dialog>
