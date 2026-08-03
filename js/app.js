@@ -309,11 +309,16 @@ function startGameplay() {
   timerPaused = gameState.timerPaused ?? false;
 
   updateTimerDisplay();
-  if (!timerPaused) {
+  
+  // Re-sync icon
+  const pauseBtn = document.getElementById('btn-pause');
+  if (timerPaused) {
+    pauseBtn.innerHTML = '<i class="ph-bold ph-play"></i> Pokračovat v čase';
+  } else {
+    pauseBtn.innerHTML = '<i class="ph-bold ph-pause"></i> Pozastavit čas';
     startTimer();
   }
 
-  document.getElementById('btn-pause').textContent = timerPaused ? 'Pokračovat v čase' : 'Pozastavit čas';
   gameState.screen = 'gameplay';
   persistState();
 }
@@ -322,19 +327,27 @@ function startTimer() {
   stopTimer();
   timerPaused = false;
   gameState.timerPaused = false;
+  
+  gameState.timerTargetMs = Date.now() + (timerRemainingSec * 1000);
 
   timerInterval = setInterval(() => {
     if (timerPaused) return;
-    timerRemainingSec -= 1;
+    
+    timerRemainingSec = Math.max(0, Math.ceil((gameState.timerTargetMs - Date.now()) / 1000));
     gameState.timerRemainingSec = timerRemainingSec;
+    
     updateTimerDisplay();
-    persistState();
+    
+    // Uložíme jen každou vteřinu, abychom zbytečně nespamovali localStorage
+    if (timerRemainingSec % 1 === 0) {
+       persistState();
+    }
 
     if (timerRemainingSec <= 0) {
       stopTimer();
       onTimerEnd();
     }
-  }, 1000);
+  }, 250);
 }
 
 function stopTimer() {
@@ -361,12 +374,18 @@ function updateTimerDisplay() {
 function togglePause() {
   timerPaused = !timerPaused;
   gameState.timerPaused = timerPaused;
-  document.getElementById('btn-pause').textContent = timerPaused ? 'Pokračovat v čase' : 'Pozastavit čas';
-  if (!timerPaused && timerRemainingSec > 0) {
-    startTimer();
-  } else {
+  
+  const pauseBtn = document.getElementById('btn-pause');
+  if (timerPaused) {
+    pauseBtn.innerHTML = '<i class="ph-bold ph-play"></i> Pokračovat v čase';
     stopTimer();
+  } else {
+    pauseBtn.innerHTML = '<i class="ph-bold ph-pause"></i> Pozastavit čas';
+    if (timerRemainingSec > 0) {
+      startTimer();
+    }
   }
+  
   persistState();
 }
 
@@ -406,7 +425,7 @@ function revealResult() {
     li.className = isImp ? 'player-row-impostor' : 'player-row-innocent';
     li.textContent = isImp
       ? `Hráč ${i + 1} – IMPOSTOR`
-      : `Hráč ${i + 1} – znal slovo „${gameState.word}"`;
+      : `Hráč ${i + 1} – znal slovo „${gameState.word}“`;
     els.resultPlayers.appendChild(li);
   }
 
