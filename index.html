@@ -116,12 +116,18 @@
 
         <fieldset class="card">
           <legend class="label"><i class="ph-bold ph-mask-sad text-neon-pink"></i> Počet impostorů</legend>
-          <div class="flex gap-3" role="radiogroup" aria-label="Počet impostorů">
-            <button type="button" id="impostors-1" class="toggle-btn flex-1 active" data-value="1">
-              <i class="ph-bold ph-user"></i> 1 Impostor
+          <div class="grid grid-cols-4 gap-3" role="radiogroup" aria-label="Počet impostorů">
+            <button type="button" id="impostors-1" class="toggle-btn flex-1 active" data-mode="1">
+              <i class="ph-bold ph-user"></i> 1
             </button>
-            <button type="button" id="impostors-2" class="toggle-btn flex-1" data-value="2">
-              <i class="ph-bold ph-users"></i> 2 Impostoři
+            <button type="button" id="impostors-2" class="toggle-btn flex-1" data-mode="2">
+              <i class="ph-bold ph-users"></i> 2
+            </button>
+            <button type="button" id="impostors-3" class="toggle-btn flex-1" data-mode="3">
+              <i class="ph-bold ph-users-three"></i> 3
+            </button>
+            <button type="button" id="impostors-random" class="toggle-btn flex-1" data-mode="random">
+              <i class="ph-bold ph-dice-six"></i> Náhodně
             </button>
           </div>
           <p id="impostors-hint" class="hint"><i class="ph-bold ph-lightbulb"></i> Doporučeno pro 5+ hráčů</p>
@@ -137,18 +143,18 @@
 
 
         <fieldset class="card">
-          <legend class="label"><i class="ph-bold ph-sun text-neon-yellow"></i> Téma</legend>
+          <legend class="label"><i class="ph-bold ph-palette text-neon-yellow"></i> Motiv</legend>
           <div class="theme-toggle-group">
             <label class="theme-toggle-option">
               <input type="radio" name="theme" value="light" id="theme-light">
               <span class="theme-toggle-label">
-                <i class="ph-bold ph-sun"></i> Light
+                <i class="ph-bold ph-sun"></i> Světlý
               </span>
             </label>
             <label class="theme-toggle-option">
               <input type="radio" name="theme" value="dark" id="theme-dark" checked>
               <span class="theme-toggle-label">
-                <i class="ph-bold ph-moon-stars"></i> Dark
+                <i class="ph-bold ph-moon-stars"></i> Tmavý
               </span>
             </label>
           </div>
@@ -156,18 +162,24 @@
 
         <fieldset class="card">
           <legend class="label"><i class="ph-bold ph-sliders-horizontal text-neon-green"></i> Volitelné</legend>
-          <label class="flex items-center gap-3 cursor-pointer group">
-            <input type="checkbox" id="opt-vibrate" class="w-5 h-5 accent-neon-pink rounded bg-white/10 border-white/20" checked>
+          <div class="flex items-center justify-between gap-3 mb-4">
             <span class="text-sm text-gray-300 group-hover:text-white transition-colors">Vibrace při konci času</span>
-          </label>
-          <label class="flex items-center gap-3 cursor-pointer mt-4 group" id="opt-show-category-label">
-            <input type="checkbox" id="opt-show-category-impostor" class="w-5 h-5 accent-neon-pink rounded bg-white/10 border-white/20">
+            <button type="button" id="opt-vibrate" class="toggle-switch" data-enabled="true">
+              <span class="toggle-slider"></span>
+            </button>
+          </div>
+          <div class="flex items-center justify-between gap-3 mb-4" id="opt-show-category-label">
             <span class="text-sm text-gray-300 group-hover:text-white transition-colors">Impostor vidí i kategorii (lehčí)</span>
-          </label>
-          <label class="flex items-center gap-3 cursor-pointer mt-4 group">
-            <input type="checkbox" id="opt-hardcore" class="w-5 h-5 accent-neon-pink rounded bg-white/10 border-white/20">
+            <button type="button" id="opt-show-category-impostor" class="toggle-switch" data-enabled="true">
+              <span class="toggle-slider"></span>
+            </button>
+          </div>
+          <div class="flex items-center justify-between gap-3 mb-4">
             <span class="text-sm text-gray-300 group-hover:text-white transition-colors">Hardcore mód (pevný čas 3 min, skryje kategorii impostorovi)</span>
-          </label>
+            <button type="button" id="opt-hardcore" class="toggle-switch" data-enabled="false">
+              <span class="toggle-slider"></span>
+            </button>
+          </div>
           <button type="button" id="btn-open-categories" class="btn-secondary w-full mt-5 text-sm">
             <i class="ph-bold ph-funnel"></i> Vybrat kategorie
             <span id="categories-badge" class="ml-auto text-xs bg-neon-purple/30 text-neon-purple px-2 py-0.5 rounded-full hidden">0</span>
@@ -409,10 +421,12 @@
         <p class="text-xs text-gray-400 mb-5">Vyber kategorie, ze kterých se bude losovat slovo. Pokud nevybereš nic, použijí se všechny.</p>
 
         <!-- Select all -->
-        <label class="flex items-center gap-3 cursor-pointer mb-4 p-3 rounded-xl border border-white/10 bg-white/5 group">
-          <input type="checkbox" id="cat-all" class="w-5 h-5 accent-neon-cyan">
-          <span class="font-semibold text-white group-hover:text-neon-cyan transition-colors">Všechny kategorie</span>
-        </label>
+        <div class="flex items-center justify-between gap-3 mb-4 p-3 rounded-xl border border-white/10 bg-white/5">
+          <span class="font-semibold text-white">Všechny kategorie</span>
+          <button type="button" id="cat-all" class="toggle-switch" data-enabled="true">
+            <span class="toggle-slider"></span>
+          </button>
+        </div>
 
         <div id="category-list" class="space-y-2 max-h-[45dvh] overflow-y-auto pr-1 custom-scrollbar">
           <!-- Populated by JS -->
