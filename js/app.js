@@ -5,16 +5,33 @@
 
 const STORAGE_KEY = 'impostor-game-state';
 const HIDE_ROLE_DELAY_MS = 1000;
+const PLAYER_MIN = 3;
+const PLAYER_MAX = 10;
+const IMPOSTOR_MODES = ['1', '2', '3', 'random'];
 
 /** @typedef {'setup'|'pass'|'role'|'gameplay'|'resolution'|'result'} Screen */
 
-/** @type {object} */
+/**
+ * @typedef {object} SetupConfig
+ * @property {number} playerCount
+ * @property {number} impostorCount - Used when impostorMode is not 'random'
+ * @property {'1'|'2'|'3'|'random'} impostorMode
+ * @property {number} timerMinutes
+ * @property {boolean} vibrateOnEnd
+ * @property {boolean} showCategoryToImpostor
+ * @property {boolean} hardcoreMode
+ * @property {'light'|'dark'} theme
+ * @property {string[]} selectedCategories
+ */
+
+/** @type {SetupConfig} */
 let setupConfig = {
   playerCount: 4,
   impostorCount: 1,
+  impostorMode: '1',
   timerMinutes: 5,
   vibrateOnEnd: true,
-  showCategoryToImpostor: false,
+  showCategoryToImpostor: true,
   hardcoreMode: false,
   theme: 'dark',
   selectedCategories: [],
@@ -150,6 +167,7 @@ function applyTheme(theme) {
   // Sync radio buttons
   const radio = document.querySelector(`input[name="theme"][value="${theme}"]`);
   if (radio) radio.checked = true;
+  // Sync toggle-switch visual state (if theme toggle uses toggle switches)
 }
 
 // --- Category Modal ---
@@ -160,28 +178,29 @@ function buildCategoryModal() {
   const list = document.getElementById('category-list');
   list.innerHTML = '';
   Object.entries(WORD_DICTIONARY).forEach(([key, cat]) => {
-    const label = document.createElement('label');
-    label.className = 'category-modal-item';
-    const cb = document.createElement('input');
-    cb.type = 'checkbox';
-    cb.value = key;
-    cb.id = `cat-${key}`;
-    cb.checked = setupConfig.selectedCategories.includes(key);
+    const item = document.createElement('div');
+    item.className = 'category-modal-item';
     const span = document.createElement('span');
     span.textContent = cat.name;
-    label.append(cb, span);
-    list.appendChild(label);
+    const toggle = document.createElement('button');
+    toggle.type = 'button';
+    toggle.className = 'toggle-switch';
+    toggle.dataset.enabled = String(setupConfig.selectedCategories.includes(key));
+    toggle.setAttribute('aria-label', cat.name);
+    const slider = document.createElement('span');
+    slider.className = 'toggle-slider';
+    toggle.appendChild(slider);
+    item.append(span, toggle);
+    list.appendChild(item);
   });
-  // Sync "Všechny" checkbox
-  syncAllCategoriesCheckbox();
+  syncAllCategoriesToggle();
 }
 
-function syncAllCategoriesCheckbox() {
-  const allCb = document.getElementById('cat-all');
+function syncAllCategoriesToggle() {
+  const allBtn = document.getElementById('cat-all');
   const allKeys = Object.keys(WORD_DICTIONARY);
-  const checked = document.querySelectorAll('#category-list input[type="checkbox"]:checked');
-  allCb.checked = checked.length === allKeys.length || checked.length === 0;
-  allCb.indeterminate = checked.length > 0 && checked.length < allKeys.length;
+  const enabled = document.querySelectorAll('#category-list .toggle-switch[data-enabled="true"]');
+  allBtn.dataset.enabled = String(enabled.length === allKeys.length || enabled.length === 0);
 }
 
 function openCategoryModal() {
@@ -194,11 +213,17 @@ function closeCategoryModal() {
 }
 
 function confirmCategorySelection() {
-  const checked = document.querySelectorAll('#category-list input[type="checkbox"]:checked');
+  const enabled = document.querySelectorAll('#category-list .toggle-switch[data-enabled="true"]');
   const allKeys = Object.keys(WORD_DICTIONARY);
-  const selected = Array.from(checked).map(cb => cb.value);
+  const selected = Array.from(enabled).map(btn => btn.closest('.category-modal-item').querySelector('span').textContent);
+  // Need to map back to keys
+  const keyMap = {};
+  Object.entries(WORD_DICTIONARY).forEach(([key, cat]) => {
+    keyMap[cat.name] = key;
+  });
+  const selectedKeys = selected.map(name => keyMap[name]).filter(Boolean);
   // If all selected or none, treat as "all" (empty = all)
-  setupConfig.selectedCategories = (selected.length === allKeys.length) ? [] : selected;
+  setupConfig.selectedCategories = (selectedKeys.length === allKeys.length) ? [] : selectedKeys;
   updateCategoriesBadge();
   closeCategoryModal();
 }
@@ -219,8 +244,15 @@ function updateCategoriesBadge() {
 
 function getMaxImpostors(playerCount) {
   if (playerCount <= 4) return 1;
-  if (playerCount <= 7) return 2;
-  return 2;
+  if (playerCount <= 8) return 2;
+  return 3;
+}
+
+function resolveImpostorCount() {
+  if (setupConfig.impostorMode === 'random') {
+    return Math.min(setupConfig.playerCount, 4);
+  }
+  return setupConfig.impostorCount;
 }
 
 function updateSetupUI() {
@@ -228,24 +260,34 @@ function updateSetupUI() {
   els.playersRange.value = String(setupConfig.playerCount);
 
   const maxImp = getMaxImpostors(setupConfig.playerCount);
-  document.getElementById('impostors-2').disabled = maxImp < 2;
-  if (setupConfig.impostorCount > maxImp) {
-    setupConfig.impostorCount = maxImp;
-  }
 
-  document.getElementById('impostors-1').classList.toggle('active', setupConfig.impostorCount === 1);
-  document.getElementById('impostors-2').classList.toggle('active', setupConfig.impostorCount === 2);
+  // Update impostor buttons visibility and active states
+  IMPOSTOR_MODES.forEach((mode) => {
+    const btn = document.getElementById(`impostors-${mode}`);
+    if (!btn) return;
+    const isEnabled = mode === 'random'
+      ? true
+      : Number(mode) <= maxImp;
+    btn.disabled = !isEnabled;
+    btn.classList.toggle('active', setupConfig.impostorMode === mode);
+    btn.classList.toggle('opacity-40', mode !== 'random' && Number(mode) > maxImp);
+  });
 
   els.impostorsHint.textContent =
-    maxImp < 2
-      ? '2 impostory lze od 5 hráčů'
-      : 'Doporučeno pro větší skupiny';
+    setupConfig.impostorMode === 'random'
+      ? `Náhodně 1–${resolveImpostorCount()} impostorů`
+      : `${setupConfig.impostorMode} impostor${Number(setupConfig.impostorMode) > 1 ? 'i' : ''}`;
 
   document.querySelectorAll('.timer-btn').forEach((btn) => {
     const mins = Number(btn.dataset.minutes);
     btn.classList.toggle('active', mins === setupConfig.timerMinutes);
     btn.disabled = setupConfig.hardcoreMode && mins !== 3;
   });
+  // Sync toggle buttons with config
+  document.getElementById('opt-vibrate').dataset.enabled = String(setupConfig.vibrateOnEnd);
+  document.getElementById('opt-show-category-impostor').dataset.enabled = String(setupConfig.showCategoryToImpostor);
+  document.getElementById('opt-hardcore').dataset.enabled = String(setupConfig.hardcoreMode);
+
   // Sync hardcore side-effects
   const showCatLabel = document.getElementById('opt-show-category-label');
   if (showCatLabel) {
@@ -525,9 +567,9 @@ function resumeGame() {
   gameState = saved.gameState;
   updateSetupUI();
 
-  document.getElementById('opt-vibrate').checked = setupConfig.vibrateOnEnd;
-  document.getElementById('opt-show-category-impostor').checked = setupConfig.showCategoryToImpostor;
-  document.getElementById('opt-hardcore').checked = setupConfig.hardcoreMode ?? false;
+  document.getElementById('opt-vibrate').dataset.enabled = String(setupConfig.vibrateOnEnd);
+  document.getElementById('opt-show-category-impostor').dataset.enabled = String(setupConfig.showCategoryToImpostor);
+  document.getElementById('opt-hardcore').dataset.enabled = String(setupConfig.hardcoreMode ?? false);
   applyTheme(setupConfig.theme ?? 'dark');
   updateCategoriesBadge();
 
@@ -568,16 +610,19 @@ function bindEvents() {
     updateSetupUI();
   });
 
-  document.getElementById('impostors-1').addEventListener('click', () => {
-    setupConfig.impostorCount = 1;
-    updateSetupUI();
-  });
-
-  document.getElementById('impostors-2').addEventListener('click', () => {
-    if (getMaxImpostors(setupConfig.playerCount) >= 2) {
-      setupConfig.impostorCount = 2;
+  // Impostor mode buttons
+  IMPOSTOR_MODES.forEach((mode) => {
+    const btn = document.getElementById(`impostors-${mode}`);
+    if (!btn) return;
+    btn.addEventListener('click', () => {
+      const maxImp = getMaxImpostors(setupConfig.playerCount);
+      if (mode !== 'random' && Number(mode) > maxImp) return;
+      setupConfig.impostorMode = mode;
+      if (mode !== 'random') {
+        setupConfig.impostorCount = Number(mode);
+      }
       updateSetupUI();
-    }
+    });
   });
 
   document.querySelectorAll('.timer-btn').forEach((btn) => {
@@ -587,29 +632,39 @@ function bindEvents() {
     });
   });
 
-  document.getElementById('opt-vibrate').addEventListener('change', (e) => {
-    setupConfig.vibrateOnEnd = e.target.checked;
+  // Toggle button handler
+  function toggleHandler(btn, configKey) {
+    const currentlyEnabled = btn.dataset.enabled === 'true';
+    btn.dataset.enabled = String(!currentlyEnabled);
+    setupConfig[configKey] = !currentlyEnabled;
+  }
+
+  document.getElementById('opt-vibrate').addEventListener('click', (e) => {
+    toggleHandler(e.target, 'vibrateOnEnd');
   });
 
-  document.getElementById('opt-show-category-impostor').addEventListener('change', (e) => {
-    setupConfig.showCategoryToImpostor = e.target.checked;
+  document.getElementById('opt-show-category-impostor').addEventListener('click', (e) => {
+    toggleHandler(e.target, 'showCategoryToImpostor');
   });
 
-  document.getElementById('opt-hardcore').addEventListener('change', (e) => {
-    setupConfig.hardcoreMode = e.target.checked;
+  document.getElementById('opt-hardcore').addEventListener('click', (e) => {
+    toggleHandler(e.target, 'hardcoreMode');
     if (setupConfig.hardcoreMode) {
       setupConfig.timerMinutes = 3;
       setupConfig.showCategoryToImpostor = false;
-      document.getElementById('opt-show-category-impostor').checked = false;
+      document.getElementById('opt-show-category-impostor').dataset.enabled = 'false';
+      document.getElementById('opt-show-category-impostor').closest('[id="opt-show-category-label"]').style.opacity = '0.4';
+      document.getElementById('opt-show-category-impostor').closest('[id="opt-show-category-label"]').style.pointerEvents = 'none';
+    } else {
+      document.getElementById('opt-show-category-impostor').closest('[id="opt-show-category-label"]').style.opacity = '1';
+      document.getElementById('opt-show-category-impostor').closest('[id="opt-show-category-label"]').style.pointerEvents = '';
     }
     updateSetupUI();
   });
 
-  document.querySelectorAll('input[name="theme"]').forEach((radio) => {
-    radio.addEventListener('change', (e) => {
-      applyTheme(e.target.value);
-    });
-  });
+  // Theme toggle buttons
+  document.getElementById('theme-light').addEventListener('click', () => applyTheme('light'));
+  document.getElementById('theme-dark').addEventListener('click', () => applyTheme('dark'));
 
   // Category modal
   document.getElementById('btn-open-categories').addEventListener('click', openCategoryModal);
@@ -617,14 +672,24 @@ function bindEvents() {
   document.getElementById('btn-cancel-categories').addEventListener('click', closeCategoryModal);
   document.getElementById('btn-confirm-categories').addEventListener('click', confirmCategorySelection);
 
-  document.getElementById('cat-all').addEventListener('change', (e) => {
-    const cbs = document.querySelectorAll('#category-list input[type="checkbox"]');
-    cbs.forEach(cb => { cb.checked = e.target.checked; });
-    syncAllCategoriesCheckbox();
+  document.getElementById('cat-all').addEventListener('click', (e) => {
+    const enabled = e.target.dataset.enabled === 'true';
+    const newEnabled = !enabled;
+    e.target.dataset.enabled = String(newEnabled);
+    document.querySelectorAll('#category-list .toggle-switch').forEach(btn => {
+      btn.dataset.enabled = String(newEnabled);
+    });
+    syncAllCategoriesToggle();
   });
 
-  document.getElementById('category-list').addEventListener('change', () => {
-    syncAllCategoriesCheckbox();
+  // Category modal toggle click handler
+  document.getElementById('category-list').addEventListener('click', (e) => {
+    const toggle = e.target.closest('.toggle-switch');
+    if (toggle) {
+      const currentlyEnabled = toggle.dataset.enabled === 'true';
+      toggle.dataset.enabled = String(!currentlyEnabled);
+      syncAllCategoriesToggle();
+    }
   });
 
   document.getElementById('btn-start').addEventListener('click', () => {
