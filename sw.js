@@ -1,9 +1,10 @@
-const CACHE_NAME = 'impostor-v1';
+const CACHE_NAME = 'impostor-v3';
 const ASSETS = [
   './',
   './index.html',
   './css/styles.css',
   './js/data.js',
+  './js/audio.js',
   './js/app.js',
   './manifest.json',
   './assets/icon.svg',
