@@ -1,145 +1,144 @@
-# Impostor – Pass & Play Party hra
+# Impostor: Top Secret Dossier 🗂️
 
-Webová slovní party hra pro **jedno zařízení** (Pass & Play). Všichni hráči kromě Impostora znají tajné slovo – Impostor se musí tvářit, že ho zná, a zároveň ho uhodnout z nápověd ostatních.
+[![PWA Ready](https://img.shields.io/badge/PWA-Ready-success.svg)](#technologický-stack)
+[![Offline Capable](https://img.shields.io/badge/Offline-100%25-blue.svg)](#pwa--offline-provoz)
+[![Zero Dependencies](https://img.shields.io/badge/Runtime%20Dependencies-0-orange.svg)](#technologický-stack)
+[![Words Database](https://img.shields.io/badge/Slovník-917%2B%20slov-red.svg)](#databáze-a-herní-okruhy)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-Inspirováno hrami typu *Spyfall* a *The Chameleon*.
+**Impostor** je prémiová společenská dedukční hra pro jedno zařízení (Pass & Play), navržená v autentické vizuální estetice tajného vyšetřovacího spisu z 90. let (*Top Secret Dossier*). 
 
-**Demo:** Po nasazení na GitHub Pages bude dostupné na `https://<username>.github.io/impostor-game/`
+Hráči postupně přebírají zařízení, lámou voskovou pečeť na papírové obálce a nahlížejí do přísně tajného zadání. Všichni civilní agenti znají totožné tajné slovo – kromě **Impostora**, který slovo nezná a musí z nápověd ostatních blafovat, nebo **Undercover agenta**, který obdržel klamné, velmi podobné slovo.
 
 ---
 
-## Rychlý start
+## 🎯 Klíčové přednosti produktu
+
+- 📜 **Minimalistická papírová estetika (90s / 00s Dossier):** Autentická textura manilového papíru, úřední razítka z psacího stroje a plnohodnotný noční archivní režim (*Midnight Archival Carbon*) se slonovinovým písmem.
+- 🕯️ **Interaktivní vosková pečeť:** Taktilní mechanismus odpečetění obálky s plynulou animací a možností opětovného zapečetění před předáním zařízení dalšímu hráči.
+- 🔊 **Procedurální Web Audio syntezátor (`js/audio.js`):** 100% syntetizované mechanické a organické zvuky přímo v prohlížeči (rozlomení pečeti, šustění papíru, dopad razítka, tikot mechanických stopek, zvonek). Žádné externí MP3/WAV soubory ani síťové prodlevy.
+- 📚 **Masivní český slovník (917+ hesel v 16 kategoriích):** Vyvážený obsah od zvířat a gastronomie až po hry, popkulturu a technologie.
+- 🕵️ **Mód Undercover (Falešné slovo):** Více než 80 promyšlených dvojic příbuzných slov (např. *Káva vs. Čaj*, *Minecraft vs. Roblox*, *Batman vs. Superman*), kde vetřelec sám neví, že je vetřelcem, dokud nezačne diskuse.
+- 👥 **Správa vyšetřovacího týmu (Squad Manager):** Trvalé ukládání jmen hráčů v zařízení + inteligentní generátor stylových kódových přezdívek.
+- ⚖️ **Interaktivní Hlasovací aréna & Výslechový modal:** Fyzické klikání na podezřelé agenty, dramatická výslechová sekvence se suspense fází a mechanika **Poslední šance Impostora** (uhodnutí slova pro zvrácení porážky).
+- 🎲 **Párty modifikátory (Chaos karty):** Volitelná pravidla pro nápovědy v každém kole (např. *pouze jednoslovné nápovědy*, *rýmování*, *nápověda formou otázky*).
+- ✏️ **Editor vlastních balíčků:** Možnost vytvořit a uložit interní slovník přímo v rozhraní hry.
+- 📊 **Celo-večerní Scoreboard:** Automatické sledování skóre Tým vs. Impostoři napříč odehranými koly.
+
+---
+
+## 🎮 Herní režimy
+
+| Režim | Popis | Vhodné pro |
+| :--- | :--- | :--- |
+| **Klasický Impostor** | Jeden nebo více vetřelců vůbec nezná tajné slovo a musí splynout s davem a uhodnout téma. | 3–12 hráčů, základní party hra |
+| **Undercover (Falešné slovo)** | Vetřelec dostane nepatrně odlišné slovo z téže oblasti (*Káva vs. Čaj*). Netuší, že je v jiné roli! | Zkušenější party, jemné blafování |
+| **Hardcore vyšetřování** | Zkrácená 3minutová diskuse, úplný zákaz zobrazení kategorie a nejpřísnější pravidla dedukce. | Náročné hráče a detektivní duely |
+
+---
+
+## 📚 Databáze a herní okruhy
+
+Slovník [`js/data.js`](js/data.js) obsahuje celkem **917 unikátních českých hesel** rozdělených do 16 tematických okruhů, navržených speciálně pro party hry:
+
+```
+├── Zvířata (62 slov)              ├── Česko & Popkultura (60 slov)
+├── Jídlo & Nápoje (65 slov)       ├── Párty & Noční život (60 slov)
+├── Filmy & Seriály (60 slov)      ├── Slavné osobnosti (55 slov)
+├── Města & Státy (60 slov)        ├── Doprava & Stroje (55 slov)
+├── Povolání & Role (60 slov)      ├── Značky & Produkty (55 slov)
+├── Sport & Pohyb (60 slov)        ├── Hudební svět (55 slov)
+├── Příroda & Svět (55 slov)       ├── Domácnost & Každodenní věci (50 slov)
+└── Technologie & Sci-Fi (55 slov) └── Hry & Gaming (50 slov)
+```
+
+Navíc obsahuje **83 vyladěných Undercover dvojic** a **8 párty výzev kola**.
+
+---
+
+## 🚀 Rychlý start
+
+Aplikace nevyžaduje žádné kompilátory, build systémy ani Node.js backend. Běží okamžitě na jakémkoliv statickém webovém serveru.
+
+### 1. Klonování repozitáře
+```bash
+git clone https://github.com/dchaker/impostor.git
+cd impostor
+```
+
+### 2. Spuštění lokálního serveru
+Spusťte libovolný lokální HTTP server:
 
 ```bash
-# Klonování (nebo stažení ZIP)
-git clone https://github.com/<username>/impostor-game.git
-cd impostor-game
-
-# Lokální preview (libovolný statický server)
+# Pomocí npx (Node.js)
 npx serve .
-# nebo: python -m http.server 8080
+
+# Nebo pomocí Pythonu
+python -m http.server 8080
+
+# Nebo pomocí PHP
+php -S localhost:8080
 ```
 
-Otevřete `http://localhost:3000` (nebo `:8080`) v prohlížeči na mobilu i desktopu.
-
-**Není potřeba** npm install, build ani backend.
+Otevřete `http://localhost:3000` (nebo `http://localhost:8080`) v prohlížeči na počítači nebo mobilním telefonu.
 
 ---
 
-## Obsah dokumentace
+## 📱 PWA & Offline provoz
 
-| Dokument | Popis |
-|----------|--------|
-| [docs/GAME_RULES.md](docs/GAME_RULES.md) | Kompletní pravidla, tipy pro moderátora, varianty hry |
-| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Technická architektura, stav hry, datový model |
-| [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) | GitHub Pages, vlastní doména, PWA |
-| [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) | Jak přidat kategorie, slova, překlady |
+Hra je certifikovaná Progressive Web App (PWA):
+1. **Instalace na plochu:** Na mobilním zařízení zvolte v menu prohlížeče *„Přidat na plochu“* (Add to Home Screen). Aplikace se spustí v celoobrazovkovém režimu bez adresního řádku.
+2. **Plná offline funkčnost:** Service Worker (`sw.js` s verzí `impostor-v5`) ukládá veškeré rozhraní, styly, logiku i syntetizér zvuků do lokální cache zařízení. Po prvním otevření hra funguje kdekoliv bez nutnosti internetového připojení (na chatě, v letadle i v podzemí).
 
 ---
 
-## Struktura projektu
+## 🏛️ Architektura a technologie
 
 ```
-impostor-game/
-├── index.html          # Hlavní HTML – obrazovky, Tailwind CDN
-├── manifest.json       # PWA manifest
-├── sw.js               # Service Worker (offline cache)
-├── css/
-│   └── styles.css      # Vlastní styly (tlačítka, karty, dialog)
-├── js/
-│   ├── data.js         # Slovník kategorií a slov
-│   └── app.js          # Logika hry, timer, localStorage
-├── assets/
-│   └── icon.svg        # Ikona aplikace
-└── docs/               # Podrobná dokumentace
+┌────────────────────────────────────────────────────────┐
+│                      index.html                        │
+│   Sémantické rozhraní, dialogy, SVG pečeť a layout     │
+└───────────────┬───────────────────┬────────────────────┘
+                │                   │
+        ┌───────▼────────┐  ┌───────▼────────┐
+        │   js/data.js   │  │   js/audio.js  │
+        │ 917 slov, 16   │  │ Web Audio API  │
+        │ okruhů, 83 parů│  │ syntezátor     │
+        └───────┬────────┘  └───────┬────────┘
+                │                   │
+        ┌───────▼───────────────────▼────────┐
+        │             js/app.js              │
+        │  Stavový automat, Pass & Play tok, │
+        │  hlasovací mechanika, localStorage │
+        └───────────────────┬────────────────┘
+                            │
+                    ┌───────▼────────┐
+                    │     sw.js      │
+                    │ PWA v5 Offline │
+                    └────────────────┘
 ```
 
----
-
-## Herní flow (obrazovky)
-
-```mermaid
-flowchart TD
-    A[Setup] -->|Start hry| B[Pass – Předej hráči N]
-    B -->|Jsem připraven| C[Role Reveal]
-    C -->|Skrýt roli| B
-    C -->|Všichni viděli roli| D[Gameplay + Timer]
-    D -->|Čas vypršel / Ukončit| E[Hlasování]
-    E -->|Odhalit impostora| F[Výsledek]
-    F -->|Hrát znovu| A
-    F -->|Stejné nastavení| A
-```
-
-### 1. Setup (hlavní menu)
-
-- Počet hráčů: **3–10**
-- Počet impostorů: **1–2** (2 až od 5 hráčů)
-- Délka diskuse: **3 / 5 / 7 minut**
-- Volitelně: vibrace při konci, impostor vidí kategorii (lehčí režim)
-
-### 2. Pass & Play
-
-Každý hráč postupně:
-
-1. Převezme telefon
-2. Klikne „Jsem připraven – ukázat roli“
-3. Uvidí roli (slovo **nebo** „JSI IMPOSTOR“)
-4. Po **1 sekundě** může skrýt roli a předat dál
-
-### 3. Diskuse
-
-- Odpočet s vizuálním progress barem
-- Seznam všech kategorií a slov (pro impostora)
-- Pozastavení / předčasné ukončení
-
-### 4. Vyhodnocení
-
-- Hlasování probíhá **ústně** (offline social game)
-- Tlačítko odhalí impostory a tajné slovo
+- **Jádro:** Čistý Vanilla JavaScript (ES6+) bez frameworků a runtime závislostí.
+- **Audio engine:** Procedurální syntezátor využívající `AudioContext` s nulovou latencí a nulovou paměťovou stopou.
+- **Styling:** Tailwind CSS (utility layout) zkombinovaný s přísným balíčkem vlastních CSS proměnných pro papírovou typografii a noční archivní režim (`css/styles.css`).
+- **Ikonografie:** Phosphor Icons duotone/bold.
+- **Perzistence:** `localStorage` pro synchronizaci stavu rozehrané hry, jmen týmu, historie skóre a vlastních balíčků.
 
 ---
 
-## Vylepšení oproti základnímu zadání
+## 📖 Kompletní dokumentace
 
-| Funkce | Popis |
-|--------|--------|
-| **PWA** | Instalace na plochu telefonu, částečný offline režim |
-| **Obnovení hry** | Po nechtěném refreshi nabídne pokračování (localStorage) |
-| **Fisher-Yates shuffle** | Spravedlivý náhodný výběr impostorů |
-| **1s ochrana** | Tlačítko „Skrýt roli“ aktivní až po 1 sekundě |
-| **8 kategorií** | 120+ slov (Zvířata, Města, Filmy, …) |
-| **Lehký režim** | Impostor může vidět i kategorii |
-| **Pozastavení času** | Pro delší diskuse nebo přestávku |
-| **Přístupnost** | ARIA labely, focus stavy, reduced motion |
-| **Safe areas** | Podpora výřezů displeje (notch) |
+Podrobné informace o projektu jsou k dispozici v adresáři [`docs/`](docs/):
+
+| Dokument | Obsah |
+| :--- | :--- |
+| [📘 **docs/GAME_RULES.md**](docs/GAME_RULES.md) | Oficiální pravidla hry, role, moderátorská příručka, bodování a tipy pro party. |
+| [🏗️ **docs/ARCHITECTURE.md**](docs/ARCHITECTURE.md) | Technická architektura, stavový model, audio syntezátor a audit bezpečnosti stavu. |
+| [🚀 **docs/DEPLOYMENT.md**](docs/DEPLOYMENT.md) | Produkční nasazení (GitHub Pages, Vercel, Netlify), vlastní doména, HTTPS a PWA audit. |
+| [🤝 **docs/CONTRIBUTING.md**](docs/CONTRIBUTING.md) | Standardy pro rozšiřování slovníku, kódové konvence a příspěvky do repozitáře. |
 
 ---
 
-## Technologie
+## 📄 Licence
 
-- **HTML5 / CSS3 / JavaScript (ES6+)** – vanilla, bez frameworku
-- **Tailwind CSS** – přes CDN (zero build)
-- **localStorage** – persistence stavu hry
-- **Service Worker** – cache pro offline
-
-Žádný backend, databáze ani API klíče.
-
----
-
-## Požadavky na prohlížeč
-
-- Moderní mobilní prohlížeč (Chrome, Safari, Firefox, Edge)
-- JavaScript zapnutý
-- localStorage (standardně dostupné)
-
----
-
-## Licence
-
-MIT – volně použitelné, upravitelné a hostovatelné.
-
----
-
-## Autor & kontakt
-
-Projekt vytvořen jako open-source party hra. Pull requesty s novými kategoriemi a slovy vítány – viz [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md).
+Tento projekt je licencován pod otevřenou licencí [MIT](LICENSE). Můžete jej volně používat, upravovat i hostovat pro soukromé i komerční účely.
