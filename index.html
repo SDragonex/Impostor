@@ -584,15 +584,17 @@
     <!-- CATEGORY MODAL -->
     <dialog id="category-modal" class="rules-dialog">
       <div class="rules-dialog-inner">
-        <button type="button" id="btn-close-categories" class="absolute top-3.5 right-3.5 w-7 h-7 flex items-center justify-center rounded-full bg-[#fbf8f2] border border-[#d8cfbe] text-[#78716c] hover:text-[#1c1917]" aria-label="Zavřít">
+        <button type="button" id="btn-close-categories" class="absolute top-3.5 right-3.5 w-7 h-7 flex items-center justify-center rounded-full bg-[var(--bg-surface)] border border-[var(--border-paper)] text-[var(--text-subtle)] hover:text-[var(--text-ink)]" aria-label="Zavřít">
           <i class="ph-bold ph-x"></i>
         </button>
         <span class="paper-stamp mb-2"><i class="ph-bold ph-funnel"></i> VÝBĚR TÉMAT</span>
-        <h2 class="text-lg font-black mb-1 text-[#1c1917]">Výběr kategorií</h2>
-        <p class="text-xs text-[#78716c] mb-3">Vyberte témata pro losování slov. Pokud nevyberete žádné, použijí se všechna.</p>
+        <h2 class="text-lg font-black mb-1 text-[var(--text-ink)]">Výběr kategorií</h2>
+        <p class="text-xs text-[var(--text-subtle)] mb-3">Vyberte témata pro losování slov. Pokud jsou vybrána všechna, hra losuje ze všech 16 okruhů.</p>
 
-        <div class="flex items-center justify-between gap-3 mb-2.5 p-2 rounded bg-[#fbf8f2] border border-[#d8cfbe]">
-          <span class="font-bold text-xs text-[#1c1917] font-mono">VŠECHNA TÉMATA</span>
+        <div id="row-cat-all" class="flex items-center justify-between gap-3 mb-2.5 p-2.5 rounded sub-card cursor-pointer select-none border border-[var(--border-paper)] hover:border-[var(--border-ink)] transition-colors">
+          <span class="font-bold text-xs text-[var(--text-ink)] font-mono flex items-center gap-2">
+            <i class="ph-bold ph-squares-four text-[var(--stamp-red)] text-sm"></i> VŠECHNA TÉMATA
+          </span>
           <button type="button" id="cat-all" class="toggle-switch" data-enabled="true" aria-label="Všechna témata">
             <span class="toggle-slider"></span>
           </button>
@@ -602,7 +604,7 @@
 
         <div class="flex gap-2.5 mt-4">
           <button type="button" id="btn-cancel-categories" class="btn-secondary flex-1 !text-xs py-2">Zrušit</button>
-          <button type="button" id="btn-confirm-categories" class="btn-primary flex-1 !text-xs py-2">Potvrdit</button>
+          <button type="button" id="btn-confirm-categories" class="btn-primary flex-1 !text-xs py-2">Potvrdit výběr</button>
         </div>
       </div>
     </dialog>
