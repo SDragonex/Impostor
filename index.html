@@ -241,24 +241,24 @@
       <div id="envelope-wrapper" class="my-auto py-3">
         <div class="envelope-card">
           <div class="wax-seal-container">
-            <div id="wax-seal-btn" class="wax-seal-btn" role="button" tabindex="0" aria-label="Přidrž pečeť pro otevření obálky">
+            <div id="wax-seal-btn" class="wax-seal-btn" role="button" tabindex="0" aria-label="Klepni pro otevření obálky">
               <svg class="wax-seal-svg" viewBox="0 0 126 126">
                 <circle cx="63" cy="63" r="55" class="wax-seal-progress" id="wax-seal-circle"></circle>
               </svg>
               <i class="ph-fill ph-seal wax-seal-icon"></i>
             </div>
             
-            <p id="seal-instruction" class="text-xs font-mono font-bold uppercase tracking-wider mt-4 text-[#b91c1c] flex items-center gap-1.5">
-              <i class="ph-bold ph-hand-tap"></i> Přidrž pečeť pro nahlédnutí
+            <p id="seal-instruction" class="text-xs font-mono font-bold uppercase tracking-wider mt-4 text-[var(--stamp-red)] flex items-center justify-center gap-1.5">
+              <i class="ph-bold ph-hand-tap"></i> Klepni pro otevření obálky
             </p>
-            <p class="text-[11px] text-[#78716c] mt-1 max-w-[240px] leading-relaxed">
-              Dopis se zobrazí pouze při stisknuté pečeti. Po zvednutí prstu se obálka ihned uzavře.
+            <p id="seal-hint" class="text-[11px] text-[var(--text-subtle)] mt-1 max-w-[240px] mx-auto leading-relaxed">
+              Otevři obálku, přečti si tajné slovo a před předáním telefonu ji opět zapečeť.
             </p>
           </div>
         </div>
       </div>
 
-      <!-- VYTAŽENÝ PAPÍROVÝ DOPIS (REVEALED ONLY WHILE HOLDING) -->
+      <!-- VYTAŽENÝ PAPÍROVÝ DOPIS -->
       <div id="dossier-secret-view" class="hidden my-auto py-2">
         <div class="revealed-letter text-left">
           
@@ -266,18 +266,18 @@
           <div id="role-innocent" class="hidden">
             <div class="flex items-center justify-between mb-2">
               <span class="paper-stamp paper-stamp-green"><i class="ph-bold ph-check"></i> JSI NEVINNÝ</span>
-              <span class="text-[10px] font-mono text-[#15803d]">PŘÍSTUP POVOLEN</span>
+              <span class="text-[10px] font-mono text-[var(--stamp-green)]">PŘÍSTUP POVOLEN</span>
             </div>
             
-            <p class="text-[11px] font-mono uppercase text-[#78716c] mt-3">Kategorie / Téma:</p>
-            <p id="role-category" class="text-base font-bold text-[#1c1917] mb-1">—</p>
+            <p class="text-[11px] font-mono uppercase text-[var(--text-subtle)] mt-3">Kategorie / Téma:</p>
+            <p id="role-category" class="text-base font-bold text-[var(--text-ink)] mb-1">—</p>
 
             <div class="paper-word-box">
-              <p class="text-[10px] font-mono uppercase tracking-widest text-[#78716c] mb-1">Tajné slovo</p>
-              <p id="role-word" class="text-3xl sm:text-4xl font-black text-[#1c1917] font-mono tracking-tight">—</p>
+              <p class="text-[10px] font-mono uppercase tracking-widest text-[var(--text-subtle)] mb-1">Tajné slovo</p>
+              <p id="role-word" class="text-3xl sm:text-4xl font-black text-[var(--text-ink)] font-mono tracking-tight">—</p>
             </div>
 
-            <p class="text-xs text-[#57534e] leading-relaxed">
+            <p class="text-xs text-[var(--text-muted)] leading-relaxed">
               💡 Znáš tajné slovo. Dávej ostatním opatrné nápovědy a odhalte impostora!
             </p>
           </div>
@@ -286,34 +286,39 @@
           <div id="role-impostor" class="hidden">
             <div class="flex items-center justify-between mb-2">
               <span class="paper-stamp paper-stamp-red"><i class="ph-bold ph-warning"></i> JSI IMPOSTOR!</span>
-              <span class="text-[10px] font-mono text-[#b91c1c]">UTAJENÝ VETŘELEC</span>
+              <span class="text-[10px] font-mono text-[var(--stamp-red)]">UTAJENÝ VETŘELEC</span>
             </div>
 
             <div id="impostor-note-body" class="my-2">
-              <h3 id="impostor-title" class="text-2xl font-black text-[#b91c1c] font-mono my-1">JSI IMPOSTOR!</h3>
-              <p id="impostor-desc" class="text-xs text-[#57534e] leading-relaxed">
+              <h3 id="impostor-title" class="text-2xl font-black text-[var(--stamp-red)] font-mono my-1">JSI IMPOSTOR!</h3>
+              <p id="impostor-desc" class="text-xs text-[var(--text-muted)] leading-relaxed">
                 Neznáš tajné slovo! Tvař se nenápadně, poslouchej nápovědy ostatních a splyň s davem.
               </p>
             </div>
 
             <!-- Undercover specific word box -->
-            <div id="undercover-word-box" class="hidden paper-word-box border-[#b91c1c]">
-              <p class="text-[10px] font-mono uppercase tracking-widest text-[#b91c1c] mb-0.5">Tvoje slovo (Undercover):</p>
-              <p id="undercover-word" class="text-2xl sm:text-3xl font-black text-[#1c1917] font-mono tracking-tight">—</p>
+            <div id="undercover-word-box" class="hidden paper-word-box border-[var(--stamp-red)]">
+              <p class="text-[10px] font-mono uppercase tracking-widest text-[var(--stamp-red)] mb-0.5">Tvoje slovo (Undercover):</p>
+              <p id="undercover-word" class="text-2xl sm:text-3xl font-black text-[var(--text-ink)] font-mono tracking-tight">—</p>
             </div>
 
-            <div id="role-impostor-category" class="hidden my-2 p-2 bg-[#f5f0e6] rounded border border-[#d8cfbe] text-xs font-mono font-bold text-[#1c1917]"></div>
+            <div id="role-impostor-category" class="hidden my-2 p-2 bg-[var(--bg-surface)] rounded border border-[var(--border-paper)] text-xs font-mono font-bold text-[var(--text-ink)]"></div>
 
-            <details class="mt-2 bg-[#fbf8f2] p-2 rounded border border-[#d8cfbe]">
-              <summary class="cursor-pointer text-xs font-mono text-[#57534e] hover:text-[#1c1917] flex items-center gap-1.5 outline-none">
+            <details class="mt-2 sub-card p-2">
+              <summary class="cursor-pointer text-xs font-mono text-[var(--text-muted)] hover:text-[var(--text-ink)] flex items-center gap-1.5 outline-none">
                 <i class="ph-bold ph-list-magnifying-glass"></i> Seznam možných témat
               </summary>
-              <ul id="role-categories-list" class="mt-2 text-xs text-[#78716c] max-h-24 overflow-y-auto pr-1 grid grid-cols-2 gap-1 custom-scrollbar"></ul>
+              <ul id="role-categories-list" class="mt-2 text-xs text-[var(--text-subtle)] max-h-24 overflow-y-auto pr-1 grid grid-cols-2 gap-1 custom-scrollbar"></ul>
             </details>
           </div>
 
-          <p class="text-center text-[10px] font-mono text-[#78716c] mt-3 pt-2 border-t border-[#d8cfbe]/40">
-            <i class="ph-bold ph-hand-tap"></i> Uvolněním prstu se dopis okamžitě uzavře
+          <!-- TLAČÍTKO PRO ZAPEČETĚNÍ OBÁLKY -->
+          <button type="button" id="btn-seal-close" class="btn-secondary w-full mt-4 !text-xs py-2.5 flex items-center justify-center gap-2">
+            <i class="ph-bold ph-eye-slash text-[var(--stamp-red)]"></i> Skrýt slovo & Zapečetit obálku
+          </button>
+
+          <p class="text-center text-[10px] font-mono text-[var(--text-subtle)] mt-2">
+            <i class="ph-bold ph-shield-check"></i> Po přečtení obálku zapečeť a předej telefon
           </p>
         </div>
       </div>
