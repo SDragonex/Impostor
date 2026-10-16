@@ -394,35 +394,45 @@ function saveCustomWordsFromModal() {
 
 function buildCategoryModal() {
   const list = document.getElementById('category-list');
+  if (!list) return;
   list.innerHTML = '';
   
   // Custom words option
   const customWords = getCustomWords();
   const hasCustom = customWords.length >= 3;
+  const isCustomSelected = setupConfig.selectedCategories.includes('custom') && hasCustom;
+
   const customItem = document.createElement('div');
-  customItem.className = 'flex items-center justify-between p-2 rounded sub-card';
+  customItem.className = `category-row flex items-center justify-between p-2.5 rounded sub-card border border-[var(--border-paper)] ${hasCustom ? 'cursor-pointer hover:border-[var(--stamp-green)]' : 'opacity-40 cursor-not-allowed'} select-none transition-colors`;
+  customItem.dataset.key = 'custom';
   customItem.innerHTML = `
     <span class="flex items-center gap-2 text-xs font-bold text-[var(--stamp-green)]">
-      <i class="ph-bold ph-pencil-simple text-sm"></i> Vlastní slova (${customWords.length})
+      <i class="ph-bold ph-pencil-simple text-sm"></i> Vlastní slova <span class="font-mono text-[10px] text-[var(--text-subtle)]">(${customWords.length})</span>
     </span>
-    <button type="button" class="toggle-switch" data-enabled="${String(setupConfig.selectedCategories.includes('custom'))}" data-key="custom" ${!hasCustom ? 'disabled style="opacity:0.4;"' : ''}>
+    <button type="button" class="toggle-switch" data-enabled="${String(isCustomSelected)}" data-key="custom" ${!hasCustom ? 'disabled' : ''} aria-label="Vlastní slova">
       <span class="toggle-slider"></span>
     </button>
   `;
   list.appendChild(customItem);
 
+  // If selectedCategories is empty, it means ALL standard categories are active
+  const isAllStandardActive = setupConfig.selectedCategories.length === 0;
+
   Object.entries(WORD_DICTIONARY).forEach(([key, cat]) => {
+    const isEnabled = isAllStandardActive || setupConfig.selectedCategories.includes(key);
+
     const item = document.createElement('div');
-    item.className = 'flex items-center justify-between p-2 rounded sub-card';
-    
+    item.className = 'category-row flex items-center justify-between p-2.5 rounded sub-card border border-[var(--border-paper)] cursor-pointer select-none transition-colors hover:border-[var(--border-ink)]';
+    item.dataset.key = key;
+
     const iconSpan = document.createElement('span');
     iconSpan.className = 'flex items-center gap-2 text-xs font-medium text-[var(--text-ink)]';
-    iconSpan.innerHTML = `<i class="ph-bold ${cat.icon} text-[var(--stamp-red)] text-sm"></i> ${cat.name}`;
+    iconSpan.innerHTML = `<i class="ph-bold ${cat.icon} text-[var(--stamp-red)] text-sm"></i> ${cat.name} <span class="text-[10px] text-[var(--text-subtle)] font-mono">(${cat.words.length})</span>`;
 
     const toggle = document.createElement('button');
     toggle.type = 'button';
     toggle.className = 'toggle-switch';
-    toggle.dataset.enabled = String(setupConfig.selectedCategories.includes(key));
+    toggle.dataset.enabled = String(isEnabled);
     toggle.dataset.key = key;
     toggle.setAttribute('aria-label', cat.name);
     
@@ -433,14 +443,18 @@ function buildCategoryModal() {
     item.append(iconSpan, toggle);
     list.appendChild(item);
   });
+
   syncAllCategoriesToggle();
 }
 
 function syncAllCategoriesToggle() {
   const allBtn = document.getElementById('cat-all');
-  const allKeys = Object.keys(WORD_DICTIONARY);
-  const enabled = document.querySelectorAll('#category-list .toggle-switch[data-enabled="true"]');
-  allBtn.dataset.enabled = String(enabled.length === allKeys.length || enabled.length === 0);
+  if (!allBtn) return;
+  const standardToggles = document.querySelectorAll('#category-list .toggle-switch[data-key]:not([data-key="custom"])');
+  const enabledStandard = document.querySelectorAll('#category-list .toggle-switch[data-key]:not([data-key="custom"])[data-enabled="true"]');
+  
+  const allActive = standardToggles.length > 0 && enabledStandard.length === standardToggles.length;
+  allBtn.dataset.enabled = String(allActive);
 }
 
 function openCategoryModal() {
@@ -456,21 +470,39 @@ function closeCategoryModal() {
 
 function confirmCategorySelection() {
   window.soundFx.stamp();
-  const enabled = document.querySelectorAll('#category-list .toggle-switch[data-enabled="true"]');
-  const allKeys = Object.keys(WORD_DICTIONARY);
-  const selectedKeys = Array.from(enabled).map((btn) => btn.dataset.key).filter(Boolean);
-  setupConfig.selectedCategories = (selectedKeys.length === allKeys.length) ? [] : selectedKeys;
+  const allStandardKeys = Object.keys(WORD_DICTIONARY);
+  const enabledStandardBtns = Array.from(document.querySelectorAll('#category-list .toggle-switch[data-key]:not([data-key="custom"])[data-enabled="true"]'));
+  const enabledStandardKeys = enabledStandardBtns.map((btn) => btn.dataset.key).filter(Boolean);
+  
+  const customToggle = document.querySelector('#category-list .toggle-switch[data-key="custom"][data-enabled="true"]');
+  const isCustomEnabled = !!customToggle;
+
+  if (enabledStandardKeys.length === 0 && !isCustomEnabled) {
+    // If user turned everything off, default to all categories (cannot play with 0 words)
+    setupConfig.selectedCategories = [];
+  } else if (enabledStandardKeys.length === allStandardKeys.length && !isCustomEnabled) {
+    // All standard selected and no custom - canonical empty array
+    setupConfig.selectedCategories = [];
+  } else {
+    setupConfig.selectedCategories = isCustomEnabled 
+      ? [...enabledStandardKeys, 'custom'] 
+      : [...enabledStandardKeys];
+  }
+
   updateCategoriesBadge();
   closeCategoryModal();
 }
 
 function updateCategoriesBadge() {
   const badge = document.getElementById('categories-badge');
+  if (!badge) return;
   const n = setupConfig.selectedCategories.length;
+  const total = Object.keys(WORD_DICTIONARY).length;
   if (n === 0) {
-    badge.classList.add('hidden');
+    badge.textContent = `Vše (${total})`;
+    badge.classList.remove('hidden');
   } else {
-    badge.textContent = String(n);
+    badge.textContent = `${n}/${total}`;
     badge.classList.remove('hidden');
   }
 }
@@ -1342,26 +1374,36 @@ function bindEvents() {
   document.getElementById('btn-cancel-categories').addEventListener('click', closeCategoryModal);
   document.getElementById('btn-confirm-categories').addEventListener('click', confirmCategorySelection);
 
-  document.getElementById('cat-all').addEventListener('click', (e) => {
-    window.soundFx.tap();
-    const enabled = e.currentTarget.dataset.enabled === 'true';
-    const newEnabled = !enabled;
-    e.currentTarget.dataset.enabled = String(newEnabled);
-    document.querySelectorAll('#category-list .toggle-switch').forEach((btn) => {
-      btn.dataset.enabled = String(newEnabled);
-    });
-    syncAllCategoriesToggle();
-  });
+  const rowCatAll = document.getElementById('row-cat-all');
+  if (rowCatAll) {
+    rowCatAll.addEventListener('click', () => {
+      window.soundFx.tap();
+      const allBtn = document.getElementById('cat-all');
+      const wasEnabled = allBtn.dataset.enabled === 'true';
+      const newEnabled = !wasEnabled;
+      allBtn.dataset.enabled = String(newEnabled);
 
-  document.getElementById('category-list').addEventListener('click', (e) => {
-    const toggle = e.target.closest('.toggle-switch');
-    if (toggle && !toggle.disabled) {
+      document.querySelectorAll('#category-list .toggle-switch[data-key]:not([data-key="custom"])').forEach((btn) => {
+        btn.dataset.enabled = String(newEnabled);
+      });
+      syncAllCategoriesToggle();
+    });
+  }
+
+  const categoryList = document.getElementById('category-list');
+  if (categoryList) {
+    categoryList.addEventListener('click', (e) => {
+      const row = e.target.closest('.category-row');
+      if (!row) return;
+      const toggle = row.querySelector('.toggle-switch');
+      if (!toggle || toggle.disabled) return;
+
       window.soundFx.tap();
       const currentlyEnabled = toggle.dataset.enabled === 'true';
       toggle.dataset.enabled = String(!currentlyEnabled);
       syncAllCategoriesToggle();
-    }
-  });
+    });
+  }
 
   // Start button
   document.getElementById('btn-start').addEventListener('click', () => {
