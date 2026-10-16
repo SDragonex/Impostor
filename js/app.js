@@ -94,6 +94,8 @@ const els = {
   waxSealBtn: document.getElementById('wax-seal-btn'),
   waxSealCircle: document.getElementById('wax-seal-circle'),
   sealInstruction: document.getElementById('seal-instruction'),
+  sealHint: document.getElementById('seal-hint'),
+  btnSealClose: document.getElementById('btn-seal-close'),
   dossierSecretView: document.getElementById('dossier-secret-view'),
   roleInnocent: document.getElementById('role-innocent'),
   roleImpostor: document.getElementById('role-impostor'),
@@ -606,6 +608,8 @@ function startGameSameSettings() {
 
 // --- Pass & Wax Seal Hold-to-Reveal ---
 
+let isOpeningSeal = false;
+
 function showPassScreen() {
   showScreen('pass');
   const num = gameState.currentPlayerIndex + 1;
@@ -618,6 +622,7 @@ function showPassScreen() {
   // Reset seal state
   currentPlayerHasRevealed = false;
   sealIsDecrypted = false;
+  isOpeningSeal = false;
   resetSealVisuals();
 
   els.btnPassNext.disabled = true;
@@ -636,8 +641,11 @@ function resetSealVisuals() {
     els.waxSealBtn.classList.remove('holding');
   }
   if (els.sealInstruction) {
-    els.sealInstruction.innerHTML = '<i class="ph-bold ph-hand-tap"></i> Přidrž pečeť pro nahlédnutí';
-    els.sealInstruction.className = 'text-xs font-mono font-bold uppercase tracking-wider mt-4 text-[#b91c1c] flex items-center gap-1.5';
+    els.sealInstruction.innerHTML = '<i class="ph-bold ph-hand-tap"></i> Klepni pro otevření obálky';
+    els.sealInstruction.className = 'text-xs font-mono font-bold uppercase tracking-wider mt-4 text-[var(--stamp-red)] flex items-center justify-center gap-1.5';
+  }
+  if (els.sealHint) {
+    els.sealHint.textContent = 'Otevři obálku, přečti si tajné slovo a před předáním telefonu ji opět zapečeť.';
   }
   if (els.dossierSecretView) {
     els.dossierSecretView.classList.add('hidden');
@@ -647,73 +655,74 @@ function resetSealVisuals() {
   }
 }
 
-function startSealHold(e) {
-  if (e) e.preventDefault();
-  window.soundFx.init();
-  if (sealHoldStartTime !== null) return;
+function openEnvelope() {
+  if (isOpeningSeal) return;
+  if (sealIsDecrypted) {
+    // Již bylo odpečetěno, otevřít dopis znovu
+    els.envelopeWrapper.classList.add('hidden');
+    els.dossierSecretView.classList.remove('hidden');
+    return;
+  }
 
-  sealHoldStartTime = performance.now();
-  els.waxSealBtn.classList.add('holding');
-  els.sealInstruction.innerHTML = '<i class="ph-bold ph-envelope-open"></i> Otevírání obálky...';
-  
+  isOpeningSeal = true;
+  window.soundFx.init();
   window.soundFx.startSealHold();
   if (navigator.vibrate) navigator.vibrate(25);
 
+  els.waxSealBtn.classList.add('holding');
+  els.sealInstruction.innerHTML = '<i class="ph-bold ph-envelope-open"></i> Otevírání obálky...';
+
+  const startTime = performance.now();
+  const DURATION_MS = 220; // Rychlá, plynulá a spolehlivá animace
+
   function tick(now) {
-    if (sealHoldStartTime === null) return;
-    const elapsed = now - sealHoldStartTime;
-    const progress = Math.min(1, elapsed / HOLD_DURATION_MS);
-    
-    // 345 circumference -> 0
+    const elapsed = now - startTime;
+    const progress = Math.min(1, elapsed / DURATION_MS);
     const offset = 345 - (345 * progress);
-    els.waxSealCircle.style.strokeDashoffset = String(offset);
+    if (els.waxSealCircle) {
+      els.waxSealCircle.style.strokeDashoffset = String(offset);
+    }
 
     if (progress >= 1) {
+      isOpeningSeal = false;
       onSealComplete();
     } else {
-      sealAnimFrame = requestAnimationFrame(tick);
+      requestAnimationFrame(tick);
     }
   }
 
-  sealAnimFrame = requestAnimationFrame(tick);
+  requestAnimationFrame(tick);
 }
 
-function endSealHold(e) {
-  if (e) e.preventDefault();
-  if (sealAnimFrame) {
-    cancelAnimationFrame(sealAnimFrame);
-    sealAnimFrame = null;
-  }
-  sealHoldStartTime = null;
-  window.soundFx.stopSealHold();
-
-  // Instant Redaction! Paper slides back into envelope
-  if (sealIsDecrypted) {
-    sealIsDecrypted = false;
-    els.dossierSecretView.classList.add('hidden');
-    els.envelopeWrapper.classList.remove('hidden');
-    els.waxSealBtn.classList.remove('holding');
+function hideLetterAndSeal() {
+  window.soundFx.tap();
+  window.soundFx.stamp();
+  
+  els.dossierSecretView.classList.add('hidden');
+  els.envelopeWrapper.classList.remove('hidden');
+  if (els.waxSealCircle) {
     els.waxSealCircle.style.strokeDashoffset = '0';
-    els.sealInstruction.innerHTML = '<i class="ph-bold ph-check text-[#15803d]"></i> Dopis přečten (Obálka uzavřena)';
-    els.sealInstruction.className = 'text-xs font-mono font-bold uppercase tracking-wider mt-4 text-[#15803d] flex items-center gap-1.5';
-    
-    currentPlayerHasRevealed = true;
-    els.btnPassNext.disabled = false;
-  } else {
-    resetSealVisuals();
+  }
+  if (els.waxSealBtn) {
+    els.waxSealBtn.classList.remove('holding');
+  }
+  if (els.sealInstruction) {
+    els.sealInstruction.innerHTML = '<i class="ph-bold ph-check text-[var(--stamp-green)]"></i> Dopis přečten & Zapečetěno';
+    els.sealInstruction.className = 'text-xs font-mono font-bold uppercase tracking-wider mt-4 text-[var(--stamp-green)] flex items-center justify-center gap-1.5';
+  }
+  if (els.sealHint) {
+    els.sealHint.textContent = 'Obálka je bezpečně zapečetěna. Můžeš předat telefon dalšímu hráči (nebo klepni na pečeť pro opětovné nahlédnutí).';
   }
 }
 
 function onSealComplete() {
-  if (sealAnimFrame) {
-    cancelAnimationFrame(sealAnimFrame);
-    sealAnimFrame = null;
-  }
   window.soundFx.stopSealHold();
   window.soundFx.envelopeOpen();
   if (navigator.vibrate) navigator.vibrate([40, 70]);
 
   sealIsDecrypted = true;
+  currentPlayerHasRevealed = true;
+  els.btnPassNext.disabled = false;
   els.waxSealBtn.classList.remove('holding');
 
   const isImpostor = gameState.impostorIndices.includes(gameState.currentPlayerIndex);
@@ -766,6 +775,8 @@ function populateCategoriesList(container) {
 
 function onPassNext() {
   window.soundFx.tap();
+  els.dossierSecretView.classList.add('hidden');
+  els.envelopeWrapper.classList.remove('hidden');
   gameState.currentPlayerIndex += 1;
 
   if (gameState.currentPlayerIndex >= setupConfig.playerCount) {
@@ -1358,18 +1369,19 @@ function bindEvents() {
     startGame();
   });
 
-  // Wax Seal Hold-to-Reveal Event Listeners
+  // Wax Seal & Envelope Event Listeners
   if (els.waxSealBtn) {
-    els.waxSealBtn.addEventListener('pointerdown', startSealHold);
-    els.waxSealBtn.addEventListener('pointerup', endSealHold);
-    els.waxSealBtn.addEventListener('pointercancel', endSealHold);
-    els.waxSealBtn.addEventListener('pointerleave', endSealHold);
+    els.waxSealBtn.addEventListener('click', openEnvelope);
     els.waxSealBtn.addEventListener('keydown', (e) => {
-      if (e.code === 'Space' || e.code === 'Enter') startSealHold(e);
+      if (e.code === 'Space' || e.code === 'Enter') {
+        e.preventDefault();
+        openEnvelope();
+      }
     });
-    els.waxSealBtn.addEventListener('keyup', (e) => {
-      if (e.code === 'Space' || e.code === 'Enter') endSealHold(e);
-    });
+  }
+
+  if (els.btnSealClose) {
+    els.btnSealClose.addEventListener('click', hideLetterAndSeal);
   }
 
   els.btnPassNext.addEventListener('click', onPassNext);
